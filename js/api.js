@@ -41,7 +41,6 @@ const API = (() => {
 
   return {
     getBaseUrl,
-    setBaseUrl,
     isConfigured,
 
     ping() {

@@ -39,34 +39,13 @@ const App = (() => {
     }
   }
 
-  function showSetup() {
-    document.getElementById('setup-screen').style.display = 'flex';
-    document.getElementById('app').style.display = 'none';
-  }
-
   function showApp() {
-    document.getElementById('setup-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     loadUserView();
   }
 
-  async function saveSetup() {
-    const url = document.getElementById('setup-url').value.trim();
-    if (!url || !url.startsWith('https://script.google.com')) {
-      toast('Inserisci un URL Google Apps Script valido', 'error');
-      return;
-    }
-
-    try {
-      API.setBaseUrl(url);
-      toast('Connessione in corso...');
-      await API.ping();
-      toast('Connesso!', 'success');
-      showApp();
-    } catch (e) {
-      API.setBaseUrl('');
-      toast('Impossibile connettersi. Verifica l\'URL.', 'error');
-    }
+  function saveSetup() {
+    showApp();
   }
 
   // ---- User View ----
