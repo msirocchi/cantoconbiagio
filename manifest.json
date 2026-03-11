@@ -2,7 +2,7 @@
   "name": "Canto con Biagio",
   "short_name": "CantoConBiagio",
   "description": "Gestione canti della messa - Scegli e condividi i canti con la comunità",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#F5F0EB",
   "theme_color": "#5C4B8A",
