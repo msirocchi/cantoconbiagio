@@ -1,0 +1,526 @@
+// ============================================================
+// Main Application Logic
+// ============================================================
+
+const App = (() => {
+  const MOMENTI = [
+    { key: 'Ingresso',           icon: '&#128694;' },
+    { key: 'Riconciliazione',    icon: '&#128591;' },
+    { key: 'Gloria',             icon: '&#9728;'   },
+    { key: 'Salmo',              icon: '&#128220;'  },
+    { key: 'Alleluia',           icon: '&#127775;' },
+    { key: 'Offertorio',         icon: '&#127838;' },
+    { key: 'Santo',              icon: '&#128310;' },
+    { key: 'Mistero della fede', icon: '&#10013;'  },
+    { key: 'Pace',               icon: '&#129309;' },
+    { key: 'Agnello di Dio',     icon: '&#128048;' },
+    { key: 'Comunione',          icon: '&#127863;' },
+    { key: 'Ringraziamento',     icon: '&#128153;' },
+    { key: 'Finale',             icon: '&#127926;' }
+  ];
+
+  let currentAssignments = {};
+  let allSongs = [];
+  let adminPin = '';
+  let isAdmin = false;
+  let readingsExpanded = false;
+  let fullReadingsText = '';
+
+  // ---- Initialization ----
+
+  function init() {
+    registerServiceWorker();
+
+    if (!API.isConfigured()) {
+      showSetup();
+    } else {
+      showApp();
+    }
+  }
+
+  function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  }
+
+  function showSetup() {
+    document.getElementById('setup-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+
+  function showApp() {
+    document.getElementById('setup-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadUserView();
+  }
+
+  async function saveSetup() {
+    const url = document.getElementById('setup-url').value.trim();
+    if (!url || !url.startsWith('https://script.google.com')) {
+      toast('Inserisci un URL Google Apps Script valido', 'error');
+      return;
+    }
+
+    try {
+      API.setBaseUrl(url);
+      toast('Connessione in corso...');
+      await API.ping();
+      toast('Connesso!', 'success');
+      showApp();
+    } catch (e) {
+      API.setBaseUrl('');
+      toast('Impossibile connettersi. Verifica l\'URL.', 'error');
+    }
+  }
+
+  // ---- User View ----
+
+  async function loadUserView() {
+    setHeaderDate();
+    loadLiturgy();
+    loadAssignments();
+  }
+
+  function setHeaderDate() {
+    const now = new Date();
+    const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+    const dateStr = now.toLocaleDateString('it-IT', opts);
+    document.getElementById('header-date').textContent = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+  }
+
+  async function loadLiturgy() {
+    try {
+      const today = todayStr();
+      const data = await API.getLiturgy(today);
+
+      if (data.liturgicalDay) {
+        document.getElementById('header-liturgy').textContent = data.liturgicalDay;
+      }
+
+      if (data.readings && data.readings.length > 0) {
+        fullReadingsText = data.readings.join('\n\n---\n\n');
+        const preview = fullReadingsText.length > 200
+          ? fullReadingsText.substring(0, 200) + '...'
+          : fullReadingsText;
+
+        document.getElementById('readings-text').textContent = preview;
+        document.getElementById('readings-card').style.display = 'block';
+        document.getElementById('readings-toggle').style.display =
+          fullReadingsText.length > 200 ? 'inline-block' : 'none';
+      }
+    } catch (e) {
+      console.warn('Letture non disponibili:', e.message);
+    }
+  }
+
+  function toggleReadings() {
+    readingsExpanded = !readingsExpanded;
+    const textEl = document.getElementById('readings-text');
+    const toggleEl = document.getElementById('readings-toggle');
+
+    if (readingsExpanded) {
+      textEl.textContent = fullReadingsText;
+      toggleEl.textContent = 'Mostra meno';
+    } else {
+      textEl.textContent = fullReadingsText.substring(0, 200) + '...';
+      toggleEl.textContent = 'Mostra tutto';
+    }
+  }
+
+  async function loadAssignments() {
+    const container = document.getElementById('moments-list');
+    container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+
+    try {
+      const today = todayStr();
+      const data = await API.getAssignments(today);
+      currentAssignments = data.assignments || {};
+      renderMoments();
+    } catch (e) {
+      container.innerHTML =
+        '<div class="empty-state">' +
+        '<div class="icon">&#128268;</div>' +
+        '<p>Impossibile caricare i dati.<br>Verifica la connessione.</p>' +
+        '</div>';
+    }
+  }
+
+  function renderMoments() {
+    const container = document.getElementById('moments-list');
+    let html = '';
+
+    MOMENTI.forEach(m => {
+      const assignment = currentAssignments[m.key];
+      const isEmpty = !assignment || !assignment.fileId;
+      const songName = isEmpty ? 'Nessun canto assegnato' : assignment.name;
+      const cardClass = isEmpty ? 'moment-card empty' : 'moment-card';
+      const dataAttrs = isEmpty ? '' :
+        ' data-file-id="' + escHtml(assignment.fileId) + '" data-song-name="' + escHtml(assignment.name) + '"';
+
+      html +=
+        '<div class="' + cardClass + '"' + dataAttrs + '>' +
+        '  <div class="moment-icon">' + m.icon + '</div>' +
+        '  <div class="moment-info">' +
+        '    <div class="moment-label">' + escHtml(m.key) + '</div>' +
+        '    <div class="moment-song">' + escHtml(songName) + '</div>' +
+        '  </div>' +
+        (isEmpty ? '' : '  <div class="moment-arrow">&#8250;</div>') +
+        '</div>';
+    });
+
+    container.innerHTML = html;
+
+    container.querySelectorAll('.moment-card:not(.empty)').forEach(card => {
+      card.addEventListener('click', () => {
+        openPdf(card.dataset.fileId, card.dataset.songName);
+      });
+    });
+  }
+
+  // ---- PDF Viewer ----
+
+  async function openPdf(fileId, name) {
+    const modal = document.getElementById('pdf-modal');
+    const iframe = document.getElementById('pdf-iframe');
+    const title = document.getElementById('pdf-title');
+
+    title.textContent = name || 'Caricamento...';
+    iframe.src = '';
+    modal.classList.add('active');
+
+    try {
+      const data = await API.getPdfUrl(fileId);
+      if (data.error) throw new Error(data.error);
+      iframe.src = data.previewUrl;
+    } catch (e) {
+      iframe.src = '';
+      title.textContent = 'Errore: ' + e.message;
+    }
+  }
+
+  function closePdfModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    const modal = document.getElementById('pdf-modal');
+    modal.classList.remove('active');
+    document.getElementById('pdf-iframe').src = '';
+  }
+
+  // ---- PIN / Admin Access ----
+
+  function showPinModal() {
+    const modal = document.getElementById('pin-modal');
+    modal.classList.add('active');
+    document.getElementById('pin-error').classList.remove('visible');
+    clearPinInputs();
+    const firstInput = document.querySelector('#pin-input input[data-idx="0"]');
+    if (firstInput) setTimeout(() => firstInput.focus(), 100);
+  }
+
+  function closePinModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('pin-modal').classList.remove('active');
+    clearPinInputs();
+  }
+
+  function clearPinInputs() {
+    document.querySelectorAll('#pin-input input').forEach(input => {
+      input.value = '';
+    });
+  }
+
+  function handlePinInput(event) {
+    const input = event.target;
+    const idx = parseInt(input.dataset.idx);
+
+    if (input.value && idx < 5) {
+      const next = document.querySelector(`#pin-input input[data-idx="${idx + 1}"]`);
+      if (next) next.focus();
+    }
+
+    if (idx === 5 && input.value) {
+      verifyPin();
+    }
+  }
+
+  function handlePinKeydown(event) {
+    const input = event.target;
+    const idx = parseInt(input.dataset.idx);
+
+    if (event.key === 'Backspace' && !input.value && idx > 0) {
+      const prev = document.querySelector(`#pin-input input[data-idx="${idx - 1}"]`);
+      if (prev) {
+        prev.value = '';
+        prev.focus();
+      }
+    }
+  }
+
+  async function verifyPin() {
+    const inputs = document.querySelectorAll('#pin-input input');
+    let pin = '';
+    inputs.forEach(input => { pin += input.value; });
+
+    if (pin.length < 6) return;
+
+    adminPin = pin;
+
+    try {
+      const result = await API.verifyPin(pin);
+      if (!result.valid) {
+        document.getElementById('pin-error').classList.add('visible');
+        clearPinInputs();
+        const first = document.querySelector('#pin-input input[data-idx="0"]');
+        if (first) first.focus();
+        adminPin = '';
+        return;
+      }
+
+      isAdmin = true;
+      closePinModal();
+      enterAdmin();
+    } catch (e) {
+      document.getElementById('pin-error').classList.add('visible');
+      clearPinInputs();
+      adminPin = '';
+    }
+  }
+
+  // ---- Admin Panel ----
+
+  function enterAdmin() {
+    document.getElementById('user-view').style.display = 'none';
+    document.getElementById('admin-panel').classList.add('active');
+    document.getElementById('admin-date').value = todayStr();
+    loadAdminData();
+  }
+
+  function exitAdmin() {
+    isAdmin = false;
+    adminPin = '';
+    document.getElementById('admin-panel').classList.remove('active');
+    document.getElementById('user-view').style.display = 'block';
+    loadAssignments();
+  }
+
+  async function loadAdminData() {
+    const container = document.getElementById('assignment-list');
+    container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+
+    const date = document.getElementById('admin-date').value || todayStr();
+
+    try {
+      const [songsData, assignData] = await Promise.all([
+        API.listSongs(),
+        API.getAssignments(date)
+      ]);
+
+      allSongs = songsData.songs || [];
+      const assignments = assignData.assignments || {};
+
+      renderAdminAssignments(assignments);
+      loadRecommendedSongs(date);
+    } catch (e) {
+      container.innerHTML =
+        '<div class="status-message error">Errore nel caricamento: ' + escHtml(e.message) + '</div>';
+    }
+  }
+
+  function renderAdminAssignments(assignments) {
+    const container = document.getElementById('assignment-list');
+    let html = '';
+
+    MOMENTI.forEach(m => {
+      const current = assignments[m.key];
+      const currentFileId = current ? current.fileId : '';
+
+      html +=
+        '<div class="assignment-card">' +
+        '  <div class="momento-label">' + m.icon + ' ' + escHtml(m.key) + '</div>' +
+        '  <select data-momento="' + escHtml(m.key) + '">' +
+        '    <option value="">-- Nessun canto --</option>';
+
+      allSongs.forEach(song => {
+        const selected = song.id === currentFileId ? ' selected' : '';
+        html += '    <option value="' + escHtml(song.id) + '"' + selected + '>' +
+                escHtml(song.name) + '</option>';
+      });
+
+      html +=
+        '  </select>' +
+        '  <div class="suggestion-slot" data-momento-suggestion="' + escHtml(m.key) + '"></div>' +
+        '</div>';
+    });
+
+    container.innerHTML = html;
+  }
+
+  async function loadRecommendedSongs(date) {
+    const section = document.getElementById('recommended-section');
+    const listEl = document.getElementById('recommended-list');
+    const linksEl = document.getElementById('search-links');
+
+    try {
+      const data = await API.getRecommendedSongs(date);
+
+      let hasContent = false;
+
+      if (data.suggestions && Object.keys(data.suggestions).length > 0) {
+        let listHtml = '';
+        Object.entries(data.suggestions).forEach(([momento, songs]) => {
+          songs.forEach(song => {
+            const badge = song.inDrive
+              ? '<span class="badge-in-drive">Nel Drive</span>'
+              : '<span class="badge-not-found">Non trovato</span>';
+            const link = !song.inDrive && song.searchUrl
+              ? ' <a href="' + escHtml(song.searchUrl) + '" target="_blank" rel="noopener">Cerca partitura</a>'
+              : '';
+
+            listHtml +=
+              '<li>' +
+              '<strong>' + escHtml(momento) + ':</strong> ' +
+              escHtml(song.name) + ' ' + badge + link +
+              '</li>';
+          });
+        });
+        listEl.innerHTML = listHtml;
+        hasContent = true;
+
+        Object.entries(data.suggestions).forEach(([momento, songs]) => {
+          songs.forEach(song => {
+            if (song.inDrive && song.fileId) {
+              const slot = document.querySelector(`[data-momento-suggestion="${momento}"]`);
+              if (slot) {
+                slot.innerHTML =
+                  '<div class="suggestion-badge">' +
+                  '&#128161; Consigliato: ' + escHtml(song.name) +
+                  '</div>';
+              }
+            }
+          });
+        });
+      }
+
+      if (data.searchLinks && data.searchLinks.length > 0) {
+        let linksHtml = '<strong>Cerca canti suggeriti:</strong><br>';
+        data.searchLinks.forEach(link => {
+          linksHtml += '<a href="' + escHtml(link.searchUrl) + '" target="_blank" rel="noopener">' +
+                       escHtml(link.name) + '</a> ';
+        });
+        linksEl.innerHTML = linksHtml;
+        hasContent = true;
+      }
+
+      section.style.display = hasContent ? 'block' : 'none';
+    } catch (e) {
+      console.warn('Canti consigliati non disponibili:', e.message);
+      section.style.display = 'none';
+    }
+  }
+
+  async function saveAssignments() {
+    const date = document.getElementById('admin-date').value || todayStr();
+    const selects = document.querySelectorAll('#assignment-list select');
+    const assignments = {};
+
+    selects.forEach(select => {
+      const momento = select.dataset.momento;
+      const fileId = select.value;
+      if (fileId) {
+        const song = allSongs.find(s => s.id === fileId);
+        assignments[momento] = {
+          fileId: fileId,
+          name: song ? song.name : ''
+        };
+      }
+    });
+
+    try {
+      const result = await API.setAssignments(date, assignments, adminPin);
+      if (result.error) {
+        toast(result.error, 'error');
+        return;
+      }
+      toast('Assegnazioni salvate!', 'success');
+    } catch (e) {
+      toast('Errore nel salvataggio: ' + e.message, 'error');
+    }
+  }
+
+  async function changePin() {
+    const currentPinEl = document.getElementById('current-pin');
+    const newPinEl = document.getElementById('new-pin');
+    const current = currentPinEl.value;
+    const newPin = newPinEl.value;
+
+    if (!current || !newPin) {
+      toast('Compila entrambi i campi', 'error');
+      return;
+    }
+    if (newPin.length < 4) {
+      toast('Il nuovo PIN deve avere almeno 4 cifre', 'error');
+      return;
+    }
+
+    try {
+      const result = await API.setPin(current, newPin);
+      if (result.error) {
+        toast(result.error, 'error');
+        return;
+      }
+      adminPin = newPin;
+      currentPinEl.value = '';
+      newPinEl.value = '';
+      toast('PIN aggiornato!', 'success');
+    } catch (e) {
+      toast('Errore: ' + e.message, 'error');
+    }
+  }
+
+  // ---- Utilities ----
+
+  function todayStr() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function toast(message, type) {
+    const container = document.getElementById('toast-container');
+    const el = document.createElement('div');
+    el.className = 'toast' + (type ? ' ' + type : '');
+    el.textContent = message;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  // ---- Public API ----
+
+  return {
+    init,
+    saveSetup,
+    showPinModal,
+    closePinModal,
+    closePdfModal,
+    openPdf,
+    handlePinInput,
+    handlePinKeydown,
+    verifyPin,
+    exitAdmin,
+    loadAdminData,
+    saveAssignments,
+    changePin,
+    toggleReadings
+  };
+})();
+
+document.addEventListener('DOMContentLoaded', App.init);

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#5C4B8A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Gestione canti della messa - Scegli e condividi i canti con la comunità">
+  <title>Canto con Biagio</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ===== SETUP SCREEN ===== -->
+  <div id="setup-screen" style="display:none;">
+    <img src="icons/icon-192.svg" alt="Logo" class="setup-icon">
+    <h1>Canto con Biagio</h1>
+    <p>Per iniziare, inserisci l'URL del Google Apps Script che hai deployato. Consulta il README per le istruzioni.</p>
+    <input type="url" id="setup-url" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off">
+    <button class="btn-primary" onclick="App.saveSetup()">Connetti</button>
+  </div>
+
+  <!-- ===== MAIN APP ===== -->
+  <div id="app" style="display:none;">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-top">
+        <div>
+          <div class="header-date" id="header-date"></div>
+          <h1 class="header-title">Canto con Biagio</h1>
+          <div class="header-liturgy" id="header-liturgy"></div>
+        </div>
+        <button class="btn-admin" onclick="App.showPinModal()">Admin</button>
+      </div>
+    </header>
+
+    <!-- Content: User View -->
+    <main class="main-content" id="user-view">
+      <!-- Readings -->
+      <div class="readings-card" id="readings-card" style="display:none;">
+        <h2>&#128214; Letture del giorno</h2>
+        <div class="reading-text" id="readings-text"></div>
+        <button class="readings-toggle" id="readings-toggle" onclick="App.toggleReadings()">Mostra tutto</button>
+      </div>
+
+      <!-- Moments Grid -->
+      <h2 class="moments-title">Canti della Messa</h2>
+      <div id="moments-list">
+        <div class="loading-spinner"><div class="spinner"></div></div>
+      </div>
+    </main>
+
+    <!-- Content: Admin Panel -->
+    <div class="main-content admin-panel" id="admin-panel">
+      <div class="admin-header">
+        <h2>Gestione Canti</h2>
+        <div class="admin-actions">
+          <button class="btn-secondary" onclick="App.exitAdmin()">Chiudi Admin</button>
+        </div>
+      </div>
+
+      <div class="admin-date-picker">
+        <label for="admin-date">Data:</label>
+        <input type="date" id="admin-date" onchange="App.loadAdminData()">
+      </div>
+
+      <div id="assignment-list">
+        <div class="loading-spinner"><div class="spinner"></div></div>
+      </div>
+
+      <button class="btn-save" onclick="App.saveAssignments()">Salva Assegnazioni</button>
+
+      <!-- Recommended Songs -->
+      <div class="recommended-section" id="recommended-section" style="display:none;">
+        <h3>&#127925; Canti Consigliati</h3>
+        <ul class="recommended-list" id="recommended-list"></ul>
+        <div class="search-links" id="search-links"></div>
+      </div>
+
+      <!-- Change PIN -->
+      <div class="change-pin-section">
+        <h3>Modifica PIN</h3>
+        <div class="pin-fields">
+          <input type="password" id="current-pin" placeholder="PIN attuale" maxlength="10">
+          <input type="password" id="new-pin" placeholder="Nuovo PIN (min 4 cifre)" maxlength="10">
+          <button class="btn-secondary" onclick="App.changePin()">Cambia PIN</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PDF VIEWER MODAL ===== -->
+  <div class="modal-overlay" id="pdf-modal" onclick="App.closePdfModal(event)">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="pdf-title">Caricamento...</h3>
+        <button class="btn-close" onclick="App.closePdfModal()" aria-label="Chiudi">&times;</button>
+      </div>
+      <div class="modal-body">
+        <iframe id="pdf-iframe" title="Anteprima PDF"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PIN MODAL ===== -->
+  <div class="modal-overlay pin-modal" id="pin-modal" onclick="App.closePinModal(event)">
+    <div class="modal-content">
+      <div class="pin-form">
+        <h3>Accesso Amministratore</h3>
+        <p>Inserisci il PIN per accedere al pannello di gestione</p>
+        <div class="pin-input" id="pin-input">
+          <input type="tel" maxlength="1" data-idx="0" oninput="App.handlePinInput(event)" onkeydown="App.handlePinKeydown(event)">
+          <input type="tel" maxlength="1" data-idx="1" oninput="App.handlePinInput(event)" onkeydown="App.handlePinKeydown(event)">
+          <input type="tel" maxlength="1" data-idx="2" oninput="App.handlePinInput(event)" onkeydown="App.handlePinKeydown(event)">
+          <input type="tel" maxlength="1" data-idx="3" oninput="App.handlePinInput(event)" onkeydown="App.handlePinKeydown(event)">
+          <input type="tel" maxlength="1" data-idx="4" oninput="App.handlePinInput(event)" onkeydown="App.handlePinKeydown(event)">
+          <input type="tel" maxlength="1" data-idx="5" oninput="App.handlePinInput(event)" onkeydown="App.handlePinKeydown(event)">
+        </div>
+        <div class="pin-error" id="pin-error">PIN non valido</div>
+        <button class="btn-primary" onclick="App.verifyPin()">Accedi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOAST CONTAINER ===== -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
