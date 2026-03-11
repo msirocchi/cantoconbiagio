@@ -30,12 +30,7 @@ const App = (() => {
 
   function init() {
     registerServiceWorker();
-
-    if (!API.isConfigured()) {
-      showSetup();
-    } else {
-      showApp();
-    }
+    showApp();
   }
 
   function registerServiceWorker() {

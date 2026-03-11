@@ -3,19 +3,14 @@
 // ============================================================
 
 const API = (() => {
-  const STORAGE_KEY = 'cantoconbiagio_script_url';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwwzKl32i9hLSNBR4IBLymt2W_75W5XxyBszXp941OQAM8y4cVddpiFCDPenM_ylG4vPQ/exec';
 
   function getBaseUrl() {
-    return localStorage.getItem(STORAGE_KEY) || '';
-  }
-
-  function setBaseUrl(url) {
-    const clean = url.trim().replace(/\/+$/, '');
-    localStorage.setItem(STORAGE_KEY, clean);
+    return SCRIPT_URL;
   }
 
   function isConfigured() {
-    return !!getBaseUrl();
+    return true;
   }
 
   async function get(params) {
