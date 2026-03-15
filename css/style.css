@@ -665,6 +665,17 @@ body {
   color: var(--warning);
 }
 
+.ruah-image-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.ruah-image {
+  width: 100%;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
 .search-links {
   margin-top: 1rem;
   padding-top: 0.75rem;

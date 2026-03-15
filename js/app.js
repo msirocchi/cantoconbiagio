@@ -337,10 +337,16 @@ const App = (() => {
     try {
       const data = await API.getRecommendedSongs(date);
 
-      let hasContent = false;
+      let listHtml = '';
+
+      if (data.coraleRuahImage) {
+        listHtml += '<li class="ruah-image-item">' +
+          '<a href="https://www.coraleruah.it/santa-messa" target="_blank" rel="noopener">' +
+          '<img src="' + escHtml(data.coraleRuahImage) + '" alt="Canti suggeriti Corale Ruah" class="ruah-image">' +
+          '</a></li>';
+      }
 
       if (data.suggestions && Object.keys(data.suggestions).length > 0) {
-        let listHtml = '';
         Object.entries(data.suggestions).forEach(([momento, songs]) => {
           songs.forEach(song => {
             const badge = song.inDrive
@@ -357,8 +363,6 @@ const App = (() => {
               '</li>';
           });
         });
-        listEl.innerHTML = listHtml;
-        hasContent = true;
 
         Object.entries(data.suggestions).forEach(([momento, songs]) => {
           songs.forEach(song => {
@@ -375,17 +379,18 @@ const App = (() => {
         });
       }
 
+      listEl.innerHTML = listHtml || '<li>Visita Corale Ruah per i suggerimenti settimanali</li>';
+
+      let linksHtml = '';
       if (data.searchLinks && data.searchLinks.length > 0) {
-        let linksHtml = '<strong>Cerca canti suggeriti:</strong><br>';
         data.searchLinks.forEach(link => {
           linksHtml += '<a href="' + escHtml(link.searchUrl) + '" target="_blank" rel="noopener">' +
                        escHtml(link.name) + '</a> ';
         });
-        linksEl.innerHTML = linksHtml;
-        hasContent = true;
       }
+      linksEl.innerHTML = linksHtml;
 
-      section.style.display = hasContent ? 'block' : 'none';
+      section.style.display = 'block';
     } catch (e) {
       console.warn('Canti consigliati non disponibili:', e.message);
       section.style.display = 'none';
