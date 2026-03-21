@@ -162,40 +162,82 @@ body {
 
 /* ---- Readings Section ---- */
 
-.readings-card {
+/* ---- Reading Cards ---- */
+
+.reading-card {
   background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem;
-  margin-bottom: 1.25rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 0.6rem;
   box-shadow: var(--shadow-sm);
-  border-left: 4px solid var(--accent);
+  overflow: hidden;
 }
 
-.readings-card h2 {
-  font-size: 1rem;
-  color: var(--accent);
-  margin-bottom: 0.75rem;
+.reading-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  transition: background var(--transition);
+  user-select: none;
 }
 
-.readings-card .reading-text {
-  font-size: 0.88rem;
+.reading-header:hover {
+  background: var(--surface-alt);
+}
+
+.reading-icon {
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.reading-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--primary);
+  flex: 1;
+}
+
+.reading-chevron {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  transition: transform var(--transition);
+}
+
+.reading-preview,
+.reading-full {
+  padding: 0 1rem 0.85rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
-  line-height: 1.65;
+  line-height: 1.7;
   white-space: pre-line;
+}
+
+.reading-preview {
+  color: var(--text-muted);
+}
+
+.reading-full {
+  color: var(--text);
 }
 
 .readings-toggle {
   background: none;
   border: none;
+  border-top: 1px solid var(--border);
   color: var(--primary);
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   cursor: pointer;
-  padding: 0.5rem 0;
-  display: inline-block;
+  padding: 0.6rem 1rem;
+  display: block;
+  width: 100%;
+  text-align: left;
+  transition: background var(--transition);
+}
+
+.readings-toggle:hover {
+  background: var(--surface-alt);
 }
 
 /* ---- Song Moments Grid ---- */

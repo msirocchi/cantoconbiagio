@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cantoconbiagio-v3';
+const CACHE_NAME = 'cantoconbiagio-v4';
 const STATIC_ASSETS = [
   './',
   './index.html',

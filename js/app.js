@@ -23,8 +23,6 @@ const App = (() => {
   let allSongs = [];
   let adminPin = '';
   let isAdmin = false;
-  let readingsExpanded = false;
-  let fullReadingsText = '';
 
   // ---- Initialization ----
 
@@ -72,33 +70,71 @@ const App = (() => {
         document.getElementById('header-liturgy').textContent = data.liturgicalDay;
       }
 
-      if (data.readings && data.readings.length > 0) {
-        fullReadingsText = data.readings.join('\n\n---\n\n');
-        const preview = fullReadingsText.length > 200
-          ? fullReadingsText.substring(0, 200) + '...'
-          : fullReadingsText;
+      if (data.color) {
+        const liturgyEl = document.getElementById('header-liturgy');
+        liturgyEl.textContent += ' \u2022 ' + data.color;
+      }
 
-        document.getElementById('readings-text').textContent = preview;
-        document.getElementById('readings-card').style.display = 'block';
-        document.getElementById('readings-toggle').style.display =
-          fullReadingsText.length > 200 ? 'inline-block' : 'none';
+      if (data.readings && data.readings.length > 0) {
+        const section = document.getElementById('readings-section');
+        const list = document.getElementById('readings-list');
+        const PREVIEW_LEN = 150;
+
+        let html = '';
+        data.readings.forEach((reading, idx) => {
+          const label = reading.label || 'Lettura';
+          const icon = reading.icon || '\uD83D\uDCD6';
+          const text = reading.text || reading;
+          const needsExpand = text.length > PREVIEW_LEN;
+          const preview = needsExpand ? text.substring(0, PREVIEW_LEN) + '\u2026' : text;
+
+          html +=
+            '<div class="reading-card" data-reading-idx="' + idx + '">' +
+            '  <div class="reading-header" onclick="App.toggleReading(' + idx + ')">' +
+            '    <span class="reading-icon">' + icon + '</span>' +
+            '    <span class="reading-label">' + escHtml(label) + '</span>' +
+            '    <span class="reading-chevron" id="chevron-' + idx + '">\u25B6</span>' +
+            '  </div>' +
+            '  <div class="reading-preview" id="reading-preview-' + idx + '">' +
+                 escHtml(preview) +
+            '  </div>' +
+            '  <div class="reading-full" id="reading-full-' + idx + '" style="display:none;">' +
+                 escHtml(text) +
+            '  </div>' +
+            (needsExpand
+              ? '  <button class="readings-toggle" id="toggle-' + idx + '" onclick="App.toggleReading(' + idx + ')">Leggi tutto</button>'
+              : '') +
+            '</div>';
+        });
+
+        list.innerHTML = html;
+        section.style.display = 'block';
       }
     } catch (e) {
       console.warn('Letture non disponibili:', e.message);
     }
   }
 
-  function toggleReadings() {
-    readingsExpanded = !readingsExpanded;
-    const textEl = document.getElementById('readings-text');
-    const toggleEl = document.getElementById('readings-toggle');
+  function toggleReading(idx) {
+    const preview = document.getElementById('reading-preview-' + idx);
+    const full = document.getElementById('reading-full-' + idx);
+    const toggle = document.getElementById('toggle-' + idx);
+    const chevron = document.getElementById('chevron-' + idx);
 
-    if (readingsExpanded) {
-      textEl.textContent = fullReadingsText;
-      toggleEl.textContent = 'Mostra meno';
+    if (!full || !preview) return;
+
+    const isExpanded = full.style.display !== 'none';
+
+    if (isExpanded) {
+      full.style.display = 'none';
+      preview.style.display = 'block';
+      if (toggle) toggle.textContent = 'Leggi tutto';
+      if (chevron) chevron.textContent = '\u25B6';
     } else {
-      textEl.textContent = fullReadingsText.substring(0, 200) + '...';
-      toggleEl.textContent = 'Mostra tutto';
+      full.style.display = 'block';
+      preview.style.display = 'none';
+      if (toggle) toggle.textContent = 'Chiudi';
+      if (chevron) chevron.textContent = '\u25BC';
     }
   }
 
@@ -498,7 +534,7 @@ const App = (() => {
     loadAdminData,
     saveAssignments,
     changePin,
-    toggleReadings
+    toggleReading
   };
 })();
 
