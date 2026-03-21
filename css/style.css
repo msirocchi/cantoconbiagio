@@ -169,7 +169,6 @@ body {
   border-radius: var(--radius-md);
   margin-bottom: 0.6rem;
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
 }
 
 .reading-header {
@@ -204,40 +203,15 @@ body {
   transition: transform var(--transition);
 }
 
-.reading-preview,
-.reading-full {
-  padding: 0 1rem 0.85rem;
+.reading-body {
+  padding: 0.25rem 1rem 1rem;
   font-size: 0.85rem;
-  color: var(--text-secondary);
-  line-height: 1.7;
-  white-space: pre-line;
-}
-
-.reading-preview {
-  color: var(--text-muted);
-}
-
-.reading-full {
   color: var(--text);
-}
-
-.readings-toggle {
-  background: none;
-  border: none;
+  line-height: 1.75;
+  white-space: pre-line;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
   border-top: 1px solid var(--border);
-  color: var(--primary);
-  font-weight: 600;
-  font-size: 0.82rem;
-  cursor: pointer;
-  padding: 0.6rem 1rem;
-  display: block;
-  width: 100%;
-  text-align: left;
-  transition: background var(--transition);
-}
-
-.readings-toggle:hover {
-  background: var(--surface-alt);
 }
 
 /* ---- Song Moments Grid ---- */

@@ -78,32 +78,23 @@ const App = (() => {
       if (data.readings && data.readings.length > 0) {
         const section = document.getElementById('readings-section');
         const list = document.getElementById('readings-list');
-        const PREVIEW_LEN = 150;
 
         let html = '';
         data.readings.forEach((reading, idx) => {
           const label = reading.label || 'Lettura';
           const icon = reading.icon || '\uD83D\uDCD6';
-          const text = reading.text || reading;
-          const needsExpand = text.length > PREVIEW_LEN;
-          const preview = needsExpand ? text.substring(0, PREVIEW_LEN) + '\u2026' : text;
+          const text = reading.text || String(reading);
 
           html +=
-            '<div class="reading-card" data-reading-idx="' + idx + '">' +
+            '<div class="reading-card">' +
             '  <div class="reading-header" onclick="App.toggleReading(' + idx + ')">' +
             '    <span class="reading-icon">' + icon + '</span>' +
             '    <span class="reading-label">' + escHtml(label) + '</span>' +
             '    <span class="reading-chevron" id="chevron-' + idx + '">\u25B6</span>' +
             '  </div>' +
-            '  <div class="reading-preview" id="reading-preview-' + idx + '">' +
-                 escHtml(preview) +
-            '  </div>' +
-            '  <div class="reading-full" id="reading-full-' + idx + '" style="display:none;">' +
+            '  <div class="reading-body" id="reading-body-' + idx + '" style="display:none;">' +
                  escHtml(text) +
             '  </div>' +
-            (needsExpand
-              ? '  <button class="readings-toggle" id="toggle-' + idx + '" onclick="App.toggleReading(' + idx + ')">Leggi tutto</button>'
-              : '') +
             '</div>';
         });
 
@@ -116,26 +107,13 @@ const App = (() => {
   }
 
   function toggleReading(idx) {
-    const preview = document.getElementById('reading-preview-' + idx);
-    const full = document.getElementById('reading-full-' + idx);
-    const toggle = document.getElementById('toggle-' + idx);
+    const body = document.getElementById('reading-body-' + idx);
     const chevron = document.getElementById('chevron-' + idx);
+    if (!body) return;
 
-    if (!full || !preview) return;
-
-    const isExpanded = full.style.display !== 'none';
-
-    if (isExpanded) {
-      full.style.display = 'none';
-      preview.style.display = 'block';
-      if (toggle) toggle.textContent = 'Leggi tutto';
-      if (chevron) chevron.textContent = '\u25B6';
-    } else {
-      full.style.display = 'block';
-      preview.style.display = 'none';
-      if (toggle) toggle.textContent = 'Chiudi';
-      if (chevron) chevron.textContent = '\u25BC';
-    }
+    const isExpanded = body.style.display !== 'none';
+    body.style.display = isExpanded ? 'none' : 'block';
+    if (chevron) chevron.textContent = isExpanded ? '\u25B6' : '\u25BC';
   }
 
   async function loadAssignments() {
