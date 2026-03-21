@@ -3,7 +3,7 @@
 // ============================================================
 
 const API = (() => {
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwwzKl32i9hLSNBR4IBLymt2W_75W5XxyBszXp941OQAM8y4cVddpiFCDPenM_ylG4vPQ/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwAEfqwyscPSyhAMSGlImMPly174s7I5d0T8pmj8u5yZF0T3OdCClMnGSNGto0NPI80iQ/exec';
 
   function getBaseUrl() {
     return SCRIPT_URL;
