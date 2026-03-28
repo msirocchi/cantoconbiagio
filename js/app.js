@@ -15,6 +15,7 @@ const App = (() => {
     { key: 'Pace',               icon: '&#129309;' },
     { key: 'Agnello di Dio',     icon: '&#128048;' },
     { key: 'Comunione',          icon: '&#127863;' },
+    { key: 'Comunione 2',        icon: '&#127863;' },
     { key: 'Ringraziamento',     icon: '&#128153;' },
     { key: 'Finale',             icon: '&#127926;' }
   ];
