@@ -524,23 +524,13 @@ body {
 .admin-subtitle-section h3 {
   font-size: 0.95rem;
   color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  user-select: none;
-}
-
-.subtitle-chevron {
-  font-size: 0.7rem;
-  color: var(--text-muted);
+  margin-bottom: 0.75rem;
 }
 
 .admin-subtitle-body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-top: 0.75rem;
 }
 
 .admin-subtitle-body input {

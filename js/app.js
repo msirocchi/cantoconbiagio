@@ -8,7 +8,7 @@ const App = (() => {
     { key: 'Riconciliazione',    icon: '&#128591;' },
     { key: 'Gloria',             icon: '&#9728;'   },
     { key: 'Salmo',              icon: '&#128220;'  },
-    { key: 'Alleluia',           icon: '&#127775;' },
+    { key: 'Acclamazione al Vangelo', icon: '&#127775;' },
     { key: 'Offertorio',         icon: '&#127838;' },
     { key: 'Santo',              icon: '&#128310;' },
     { key: 'Mistero della fede', icon: '&#10013;'  },
@@ -490,14 +490,6 @@ const App = (() => {
 
   // ---- Subtitle ----
 
-  function toggleSubtitlePanel() {
-    const body = document.getElementById('admin-subtitle-body');
-    const chevron = document.getElementById('subtitle-chevron');
-    const open = body.style.display !== 'none';
-    body.style.display = open ? 'none' : 'flex';
-    chevron.textContent = open ? '\u25B6' : '\u25BC';
-  }
-
   async function loadSubtitle() {
     try {
       const data = await API.getSubtitle();
@@ -623,7 +615,7 @@ const App = (() => {
 
       let html = '';
 
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < 24; i++) {
         const slot = data.slots[i];
         const currentFileId = slot ? slot.fileId : '';
         const customTitle = slot ? (slot.customTitle || '') : '';
@@ -653,7 +645,7 @@ const App = (() => {
     const buttonName = document.getElementById('extra-btn-name').value.trim();
     const slots = [];
 
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 24; i++) {
       const select = document.querySelector('[data-extra-slot="' + i + '"]');
       const titleInput = document.querySelector('[data-extra-title="' + i + '"]');
       const fileId = select ? select.value : '';
@@ -726,7 +718,6 @@ const App = (() => {
     saveAssignments,
     changePin,
     toggleReading,
-    toggleSubtitlePanel,
     saveSubtitle,
     showExtraSection,
     hideExtraSection,
