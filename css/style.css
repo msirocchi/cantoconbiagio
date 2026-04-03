@@ -916,24 +916,6 @@ body {
 
 /* ---- Extra Section ---- */
 
-.btn-extra-admin {
-  background: linear-gradient(135deg, var(--accent), #E8C060);
-  color: var(--primary-dark);
-  border: none;
-  padding: 0.55rem 1rem;
-  border-radius: var(--radius-xl);
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all var(--transition);
-  font-family: inherit;
-}
-
-.btn-extra-admin:hover {
-  box-shadow: var(--shadow-md);
-  filter: brightness(1.05);
-}
-
 .btn-extra {
   display: block;
   width: 100%;

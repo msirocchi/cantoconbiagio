@@ -290,7 +290,7 @@ const App = (() => {
     isAdmin = false;
     adminPin = '';
     document.getElementById('admin-panel').classList.remove('active');
-    document.getElementById('extra-admin-panel').style.display = 'none';
+    document.getElementById('extra-admin-panel').classList.remove('active');
     document.getElementById('user-view').style.display = 'block';
     loadAssignments();
     loadExtraButton();
@@ -298,12 +298,12 @@ const App = (() => {
 
   function showExtraAdmin() {
     document.getElementById('admin-panel').classList.remove('active');
-    document.getElementById('extra-admin-panel').style.display = 'block';
+    document.getElementById('extra-admin-panel').classList.add('active');
     loadExtraAdmin();
   }
 
   function hideExtraAdmin() {
-    document.getElementById('extra-admin-panel').style.display = 'none';
+    document.getElementById('extra-admin-panel').classList.remove('active');
     document.getElementById('admin-panel').classList.add('active');
   }
 
