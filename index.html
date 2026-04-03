@@ -74,8 +74,8 @@
       </div>
 
       <div class="admin-subtitle-section">
-        <h3>Sottotitolo</h3>
-        <div class="admin-subtitle-row">
+        <h3 onclick="App.toggleSubtitlePanel()">Sottotitolo <span class="subtitle-chevron" id="subtitle-chevron">&#9654;</span></h3>
+        <div class="admin-subtitle-body" id="admin-subtitle-body" style="display:none;">
           <input type="text" id="admin-subtitle" placeholder="Es. Parrocchia San Marco" maxlength="80">
           <button class="btn-secondary" onclick="App.saveSubtitle()">Salva Sottotitolo</button>
         </div>

@@ -523,17 +523,27 @@ body {
 
 .admin-subtitle-section h3 {
   font-size: 0.95rem;
-  margin-bottom: 0.75rem;
   color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
 }
 
-.admin-subtitle-row {
+.subtitle-chevron {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.admin-subtitle-body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  margin-top: 0.75rem;
 }
 
-.admin-subtitle-row input {
+.admin-subtitle-body input {
   padding: 0.6rem 0.75rem;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
@@ -541,7 +551,7 @@ body {
   font-family: inherit;
 }
 
-.admin-subtitle-row input:focus {
+.admin-subtitle-body input:focus {
   outline: none;
   border-color: var(--primary);
 }

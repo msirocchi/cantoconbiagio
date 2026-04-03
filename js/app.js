@@ -490,6 +490,14 @@ const App = (() => {
 
   // ---- Subtitle ----
 
+  function toggleSubtitlePanel() {
+    const body = document.getElementById('admin-subtitle-body');
+    const chevron = document.getElementById('subtitle-chevron');
+    const open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : 'flex';
+    chevron.textContent = open ? '\u25B6' : '\u25BC';
+  }
+
   async function loadSubtitle() {
     try {
       const data = await API.getSubtitle();
@@ -718,6 +726,7 @@ const App = (() => {
     saveAssignments,
     changePin,
     toggleReading,
+    toggleSubtitlePanel,
     saveSubtitle,
     showExtraSection,
     hideExtraSection,
