@@ -514,29 +514,27 @@ body {
 
 .admin-subtitle-section {
   background: var(--surface);
-  padding: 0.75rem 1rem;
   border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
   box-shadow: var(--shadow-sm);
-  margin-bottom: 0.75rem;
+  border: 1px dashed var(--border);
 }
 
-.admin-subtitle-section label {
-  display: block;
-  font-weight: 600;
-  font-size: 0.8rem;
+.admin-subtitle-section h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
   color: var(--text-secondary);
-  margin-bottom: 0.4rem;
 }
 
 .admin-subtitle-row {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  align-items: center;
 }
 
 .admin-subtitle-row input {
-  flex: 1;
-  padding: 0.5rem 0.75rem;
+  padding: 0.6rem 0.75rem;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.9rem;
