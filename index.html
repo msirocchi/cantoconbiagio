@@ -27,6 +27,7 @@
         <div>
           <div class="header-date" id="header-date"></div>
           <h1 class="header-title">Canto con Biagio</h1>
+          <div class="header-subtitle" id="header-subtitle" style="display:none;"></div>
           <div class="header-liturgy" id="header-liturgy"></div>
         </div>
         <button class="btn-admin" onclick="App.showPinModal()">Admin</button>
@@ -69,6 +70,14 @@
         <div class="admin-actions">
           <button class="btn-secondary" onclick="App.showExtraAdmin()">Extra</button>
           <button class="btn-secondary" onclick="App.exitAdmin()">Chiudi Admin</button>
+        </div>
+      </div>
+
+      <div class="admin-subtitle-section">
+        <label for="admin-subtitle">Sottotitolo (visibile sotto "Canto con Biagio")</label>
+        <div class="admin-subtitle-row">
+          <input type="text" id="admin-subtitle" placeholder="Es. Parrocchia San Marco" maxlength="80">
+          <button class="btn-secondary" onclick="App.saveSubtitle()">Salva</button>
         </div>
       </div>
 

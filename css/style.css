@@ -127,6 +127,14 @@ body {
   line-height: 1.3;
 }
 
+.header-subtitle {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  font-weight: 500;
+  margin-top: 0.15rem;
+  line-height: 1.3;
+}
+
 .header-liturgy {
   font-size: 0.85rem;
   opacity: 0.8;
@@ -502,6 +510,42 @@ body {
 .admin-actions {
   display: flex;
   gap: 0.5rem;
+}
+
+.admin-subtitle-section {
+  background: var(--surface);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 0.75rem;
+}
+
+.admin-subtitle-section label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.4rem;
+}
+
+.admin-subtitle-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.admin-subtitle-row input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.admin-subtitle-row input:focus {
+  outline: none;
+  border-color: var(--primary);
 }
 
 .admin-date-picker {

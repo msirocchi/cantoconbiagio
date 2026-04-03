@@ -51,6 +51,7 @@ const App = (() => {
 
   async function loadUserView() {
     setHeaderDate();
+    loadSubtitle();
     loadLiturgy();
     loadAssignments();
     loadExtraButton();
@@ -283,6 +284,7 @@ const App = (() => {
     document.getElementById('extra-view').style.display = 'none';
     document.getElementById('admin-panel').classList.add('active');
     document.getElementById('admin-date').value = todayStr();
+    loadSubtitleAdmin();
     loadAdminData();
   }
 
@@ -486,6 +488,53 @@ const App = (() => {
     }
   }
 
+  // ---- Subtitle ----
+
+  async function loadSubtitle() {
+    try {
+      const data = await API.getSubtitle();
+      const el = document.getElementById('header-subtitle');
+      if (data.subtitle && data.subtitle.trim()) {
+        el.textContent = data.subtitle;
+        el.style.display = 'block';
+      } else {
+        el.style.display = 'none';
+      }
+    } catch (e) {
+      console.warn('Sottotitolo non disponibile:', e.message);
+    }
+  }
+
+  async function loadSubtitleAdmin() {
+    try {
+      const data = await API.getSubtitle();
+      document.getElementById('admin-subtitle').value = data.subtitle || '';
+    } catch (e) {
+      console.warn('Errore caricamento sottotitolo:', e.message);
+    }
+  }
+
+  async function saveSubtitle() {
+    const subtitle = document.getElementById('admin-subtitle').value.trim();
+    try {
+      const result = await API.setSubtitle(subtitle, adminPin);
+      if (result.error) {
+        toast(result.error, 'error');
+        return;
+      }
+      const el = document.getElementById('header-subtitle');
+      if (subtitle) {
+        el.textContent = subtitle;
+        el.style.display = 'block';
+      } else {
+        el.style.display = 'none';
+      }
+      toast('Sottotitolo salvato!', 'success');
+    } catch (e) {
+      toast('Errore: ' + e.message, 'error');
+    }
+  }
+
   // ---- Extra Section (User) ----
 
   let extraData = null;
@@ -669,6 +718,7 @@ const App = (() => {
     saveAssignments,
     changePin,
     toggleReading,
+    saveSubtitle,
     showExtraSection,
     hideExtraSection,
     showExtraAdmin,

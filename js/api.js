@@ -83,6 +83,14 @@ const API = (() => {
       return post({ action: 'setPin', currentPin, newPin });
     },
 
+    getSubtitle() {
+      return get({ action: 'getSubtitle' });
+    },
+
+    setSubtitle(subtitle, pin) {
+      return post({ action: 'setSubtitle', subtitle, pin });
+    },
+
     getExtraSection() {
       return get({ action: 'getExtraSection' });
     },
