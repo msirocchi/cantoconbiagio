@@ -81,6 +81,14 @@ const API = (() => {
 
     setPin(currentPin, newPin) {
       return post({ action: 'setPin', currentPin, newPin });
+    },
+
+    getExtraSection() {
+      return get({ action: 'getExtraSection' });
+    },
+
+    setExtraSection(buttonName, slots, pin) {
+      return post({ action: 'setExtraSection', buttonName, slots, pin });
     }
   };
 })();

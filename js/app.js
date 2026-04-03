@@ -53,6 +53,7 @@ const App = (() => {
     setHeaderDate();
     loadLiturgy();
     loadAssignments();
+    loadExtraButton();
   }
 
   function setHeaderDate() {
@@ -279,6 +280,7 @@ const App = (() => {
 
   function enterAdmin() {
     document.getElementById('user-view').style.display = 'none';
+    document.getElementById('extra-view').style.display = 'none';
     document.getElementById('admin-panel').classList.add('active');
     document.getElementById('admin-date').value = todayStr();
     loadAdminData();
@@ -288,8 +290,21 @@ const App = (() => {
     isAdmin = false;
     adminPin = '';
     document.getElementById('admin-panel').classList.remove('active');
+    document.getElementById('extra-admin-panel').style.display = 'none';
     document.getElementById('user-view').style.display = 'block';
     loadAssignments();
+    loadExtraButton();
+  }
+
+  function showExtraAdmin() {
+    document.getElementById('admin-panel').classList.remove('active');
+    document.getElementById('extra-admin-panel').style.display = 'block';
+    loadExtraAdmin();
+  }
+
+  function hideExtraAdmin() {
+    document.getElementById('extra-admin-panel').style.display = 'none';
+    document.getElementById('admin-panel').classList.add('active');
   }
 
   async function loadAdminData() {
@@ -471,6 +486,146 @@ const App = (() => {
     }
   }
 
+  // ---- Extra Section (User) ----
+
+  let extraData = null;
+
+  async function loadExtraButton() {
+    try {
+      extraData = await API.getExtraSection();
+      const wrapper = document.getElementById('extra-button-wrapper');
+      const btn = document.getElementById('extra-button');
+
+      if (extraData.buttonName && extraData.buttonName.trim()) {
+        btn.textContent = extraData.buttonName;
+        wrapper.style.display = 'block';
+      } else {
+        wrapper.style.display = 'none';
+      }
+    } catch (e) {
+      console.warn('Sezione extra non disponibile:', e.message);
+    }
+  }
+
+  function showExtraSection() {
+    if (!extraData) return;
+
+    document.getElementById('user-view').style.display = 'none';
+    document.getElementById('extra-view').style.display = 'block';
+    document.getElementById('extra-view-title').textContent = extraData.buttonName;
+
+    const list = document.getElementById('extra-songs-list');
+    let html = '';
+    let count = 0;
+
+    extraData.slots.forEach((slot, idx) => {
+      if (!slot || !slot.fileId) return;
+      count++;
+      const title = slot.customTitle || slot.name || 'Canto ' + (idx + 1);
+      html +=
+        '<div class="extra-song-card" data-file-id="' + escHtml(slot.fileId) + '" data-song-name="' + escHtml(title) + '">' +
+        '  <div class="extra-song-num">' + count + '</div>' +
+        '  <div class="extra-song-title">' + escHtml(title) + '</div>' +
+        '  <div class="moment-arrow">&#8250;</div>' +
+        '</div>';
+    });
+
+    if (!html) {
+      html = '<div class="empty-state"><p>Nessun canto assegnato</p></div>';
+    }
+
+    list.innerHTML = html;
+
+    list.querySelectorAll('.extra-song-card').forEach(card => {
+      card.addEventListener('click', () => {
+        openPdf(card.dataset.fileId, card.dataset.songName);
+      });
+    });
+  }
+
+  function hideExtraSection() {
+    document.getElementById('extra-view').style.display = 'none';
+    document.getElementById('user-view').style.display = 'block';
+  }
+
+  // ---- Extra Section (Admin) ----
+
+  async function loadExtraAdmin() {
+    const container = document.getElementById('extra-slots-list');
+    container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+
+    try {
+      const [data, songsData] = await Promise.all([
+        API.getExtraSection(),
+        allSongs.length ? Promise.resolve({ songs: allSongs }) : API.listSongs()
+      ]);
+
+      if (songsData.songs) allSongs = songsData.songs;
+
+      document.getElementById('extra-btn-name').value = data.buttonName || '';
+
+      let html = '';
+
+      for (let i = 0; i < 12; i++) {
+        const slot = data.slots[i];
+        const currentFileId = slot ? slot.fileId : '';
+        const customTitle = slot ? (slot.customTitle || '') : '';
+
+        html +=
+          '<div class="extra-slot">' +
+          '  <span class="extra-slot-num">' + (i + 1) + '</span>' +
+          '  <input type="text" data-extra-title="' + i + '" value="' + escHtml(customTitle) + '" placeholder="Titolo personalizzato">' +
+          '  <select data-extra-slot="' + i + '">' +
+          '    <option value="">-- Nessuno --</option>';
+
+        allSongs.forEach(song => {
+          const selected = song.id === currentFileId ? ' selected' : '';
+          html += '    <option value="' + escHtml(song.id) + '"' + selected + '>' + escHtml(song.name) + '</option>';
+        });
+
+        html += '  </select></div>';
+      }
+
+      container.innerHTML = html;
+    } catch (e) {
+      container.innerHTML = '<div class="status-message error">Errore: ' + escHtml(e.message) + '</div>';
+    }
+  }
+
+  async function saveExtraSection() {
+    const buttonName = document.getElementById('extra-btn-name').value.trim();
+    const slots = [];
+
+    for (let i = 0; i < 12; i++) {
+      const select = document.querySelector('[data-extra-slot="' + i + '"]');
+      const titleInput = document.querySelector('[data-extra-title="' + i + '"]');
+      const fileId = select ? select.value : '';
+      const customTitle = titleInput ? titleInput.value.trim() : '';
+
+      if (fileId) {
+        const song = allSongs.find(s => s.id === fileId);
+        slots.push({
+          fileId: fileId,
+          name: song ? song.name : '',
+          customTitle: customTitle
+        });
+      } else {
+        slots.push(null);
+      }
+    }
+
+    try {
+      const result = await API.setExtraSection(buttonName, slots, adminPin);
+      if (result.error) {
+        toast(result.error, 'error');
+        return;
+      }
+      toast('Sezione extra salvata!', 'success');
+    } catch (e) {
+      toast('Errore: ' + e.message, 'error');
+    }
+  }
+
   // ---- Utilities ----
 
   function todayStr() {
@@ -513,7 +668,12 @@ const App = (() => {
     loadAdminData,
     saveAssignments,
     changePin,
-    toggleReading
+    toggleReading,
+    showExtraSection,
+    hideExtraSection,
+    showExtraAdmin,
+    hideExtraAdmin,
+    saveExtraSection
   };
 })();
 
